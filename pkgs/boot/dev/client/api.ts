@@ -49,7 +49,7 @@ export default [
     newApi[name] = {
       import: `./api${i
         .substring(apiPath.length, i.length - 3)
-        .replace(/\\\\/gi, '/')}`,
+        .replace(/\\/gi, '/')}`,
       name,
     }
   }
