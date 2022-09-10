@@ -30,21 +30,24 @@ export default page({
         let BData = B.data
         RData = RData.map((value: number) => {
           if (RPercent > 0) {
-            return value + (value * RPercent / 100)
+            value = value + (value * RPercent / 100)
+            return value > 255 ? 255 : value
           }else{
             return value - (value * RPercent / -100)
           }
         });
         GData = GData.map((value: number) => {
           if (GPercent > 0) {
-            return value + (value * GPercent / 100)
+            value = value + (value * GPercent / 100)
+            return value > 255 ? 255 : value
           }else{
             return value - (value * GPercent / -100)
           }
         });
         BData = BData.map((value: number) => {
           if (BPercent > 0) {
-            return value + (value * BPercent / 100)
+            value = value + (value * BPercent / 100)
+            return value > 255 ? 255 : value
           }else{
             return value - (value * BPercent / -100)
           }
