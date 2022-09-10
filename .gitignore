@@ -71,3 +71,5 @@ app/mobile/www
 .nova
 .pnpm-lock.yaml
 app/dbs/package.json
+
+.env
