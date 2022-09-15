@@ -2,7 +2,7 @@ import { page } from 'web-init'
 import React, { useEffect, useRef, useState } from 'react'
 //@ts-ignore
 import injectScript from 'src/utils/injectScript'
-import * as cvTypes from 'mirada'
+import "mirada"
 
 export default page({
   url: '/opencv',
@@ -13,6 +13,7 @@ export default page({
     const [RPercent, setRPercent] = useState(0)
     const [GPercent, setGPercent] = useState(0)
     const [BPercent, setBPercent] = useState(0)
+    const [Brightness, setBrightness] = useState(0)
 
     useEffect(() => {
       if (!openCVLoaded) {
@@ -20,8 +21,8 @@ export default page({
         promise.then(() => {
           cv['onRuntimeInitialized'] = () => {
             setOpenCVLoaded(true)
+            console.log('OpenCV loaded')
           }
-          console.log('OpenCV loaded')
         })
           .catch(() => {
             console.log('OpenCV failed to load')
@@ -77,6 +78,34 @@ export default page({
             }
           })
 
+          if(Brightness > 0){
+            RData = RData.map((value: number) => {
+              value = value + (value * Brightness / 100)
+              return value > 255 ? 255 : value
+            });
+            GData = GData.map((value: number) => {
+              value = value + (value * Brightness / 100)
+              return value > 255 ? 255 : value
+            });
+            BData = BData.map((value: number) => {
+              value = value + (value * Brightness / 100)
+              return value > 255 ? 255 : value
+            });
+          }else{
+            RData = RData.map((value: number) => {
+              value = value - (value * Brightness / -100)
+              return value < 0 ? 0 : value
+            });
+            GData = GData.map((value: number) => {
+              value = value - (value * Brightness / -100)
+              return value < 0 ? 0 : value
+            });
+            BData = BData.map((value: number) => {
+              value = value - (value * Brightness / -100)
+              return value < 0 ? 0 : value
+            });
+          }
+
           let RMat = cv.matFromArray(R.rows, R.cols, cv.CV_8UC1, RData)
           let GMat = cv.matFromArray(G.rows, G.cols, cv.CV_8UC1, GData)
           let BMat = cv.matFromArray(B.rows, B.cols, cv.CV_8UC1, BData)
@@ -90,7 +119,7 @@ export default page({
           console.log(e)
         }
       }
-    }, [RPercent, GPercent, BPercent])
+    }, [RPercent, GPercent, BPercent, Brightness])
     return (
       <>
         <div className='w-full min-h-screen bg-primary flex justify-center'>
@@ -115,6 +144,11 @@ export default page({
                     <div className='flex-1 text-xl text-white'>Blue</div>
                     <input className='flex-1' type='range' min='-100' max='100' value={BPercent}
                            onChange={(e) => setBPercent(parseInt(e.target.value))} />
+                  </div>
+                  <div className='flex w-full'>
+                    <div className='flex-1 text-xl text-white'>Brightness</div>
+                    <input className='flex-1' type='range' min='-100' max='100' value={Brightness}
+                            onChange={(e) => setBrightness(parseInt(e.target.value))} />
                   </div>
                 </div>
                 <canvas id='new' />
