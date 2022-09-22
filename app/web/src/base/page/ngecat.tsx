@@ -38,17 +38,39 @@ export default page({
 
     newCanvas.current?.addEventListener('mousedown', (e) => {
       const image = cv.imread(newCanvas.current!)
-      const dst = new cv.Mat()
-      cv.cvtColor(image, dst, cv.COLOR_RGBA2GRAY, 0)
-      const contours = new cv.MatVector()
-      const hierarchy = new cv.Mat()
+      const img = image
+      const rgb = new cv.Mat()
+      cv.cvtColor(image, rgb, cv.COLOR_RGBA2RGB)
+      const gray = new cv.Mat()
+      cv.cvtColor(rgb, gray, cv.COLOR_RGB2GRAY)
+      const cannyGray = new cv.Mat()
+      const mask = cv.matFromArray(Math.floor(rgb.cols / 8), Math.floor(rgb.rows / 8), cv.CV_8U, new Array(Math.floor(rgb.cols / 8) * Math.floor(rgb.rows / 8)).fill(0))
+      cv.Canny(gray, cannyGray, 75, 30,3)
+
+      const hsv = new cv.Mat()
+      cv.cvtColor(rgb, hsv, cv.COLOR_RGB2HSV)
+      const list = new cv.MatVector()
+      cv.split(hsv, list)
+      const sChannel = new cv.Mat()
+      const sList = new cv.MatVector()
+      sList.push_back(list.get(1))
+      cv.merge(sList, sChannel)
+      cv.medianBlur(sChannel, sChannel, 3)
+
       const canny = new cv.Mat()
-      cv.Canny(dst, canny, 70,25, 3, false)
-      //cv.dilate(canny, canny, cv.Mat.ones(3, 3, cv.CV_8U), new cv.Point(-1, -1), 1, cv.BORDER_CONSTANT, new cv.Scalar())
-      //cv.GaussianBlur(canny, canny, new cv.Size(3, 3), 0, 0, cv.BORDER_DEFAULT)
-      cv.findContours(canny, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-      cv.drawContours(image, contours, -1, new cv.Scalar(255, 0, 0, 255), 1, cv.LINE_8, hierarchy, 1)
-      cv.imshow('new', image)
+      cv.Canny(sChannel, canny, 75, 30,3)
+      cv.addWeighted(canny, 0.5, cannyGray, 0.5, 0, canny)
+      cv.dilate(canny, canny, mask, new cv.Point(-1, -1), 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue())
+
+      const seedPoint = new cv.Point(e.offsetX, e.offsetY)
+      cv.resize(canny, canny, new cv.Size(canny.cols + 2, canny.rows + 2))
+      cv.medianBlur(rgb, rgb, 15)
+      cv.floodFill(rgb, canny, seedPoint, new cv.Scalar(255, 0, 0), new cv.Rect(), new cv.Scalar(5, 5, 5), new cv.Scalar(5, 5, 5),8)
+
+      cv.dilate(rgb, rgb,mask, new cv.Point(-1, -1), 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue())
+
+
+      cv.imshow('new', rgb)
       image.delete()
 
     })
@@ -57,7 +79,7 @@ export default page({
 
     return (
       <>
-        <img id='imageSrc' className='' ref={imageCanvas} src='/images/tembok.jpeg'
+        <img id='imageSrc' className='' ref={imageCanvas} src='/images/tembok.jpg'
              onLoad={() => setImageLoaded(true)} />
         <canvas id='new' className='' ref={newCanvas} />
       </>
