@@ -14,7 +14,7 @@ export default [
         reply.send({todo:await db.todos.create({data})})
         break
       case 'PUT':
-        delete data.id // id is not allowed to be changed
+        delete data.id
         reply.send({todo:await db.todos.update({where:{id},data})})
         break
       case 'DELETE':
